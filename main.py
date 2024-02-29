@@ -2,15 +2,16 @@ import tkinter as tk
 
 class Assistente:
     def __init__(self):
+
         # cria a janela espiritual e a imagem (que no futuro será uma animação real)
         self.root = tk.Tk()
-        self.image = tk.PhotoImage(file="rajehfeliz.png")
+        self.root.geometry('+50-50')
+        self.image = tk.PhotoImage(file='rajehfeliz.png')
         self.label = tk.Label(self.root, image=self.image, bg='white')
         self.label.pack()
 
         # faz a janela ser sem bordas e transparente
         self.root.overrideredirect(True)
-        self.root.geometry("+50-50")
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-transparentcolor", "white")
@@ -19,17 +20,38 @@ class Assistente:
         self.label.bind("<Button-1>", self.on_drag_start)
         self.label.bind("<B1-Motion>", self.on_drag_motion)
 
+        self.root.title('assistente') ### vamos mudar o nome dps
         self.root.mainloop()
+
+
     # movimento
     def on_drag_start(self, event):
         self._start_x = event.x
         self._start_y = event.y
+        self.colocar_imagem_2()
+        self.label.bind("<ButtonRelease-1>", self.on_drag_stop)
 
     # movimento
     def on_drag_motion(self, event):
         new_x = self.root.winfo_x() + (event.x - self._start_x)
         new_y = self.root.winfo_y() + (event.y - self._start_y)
         self.root.geometry(f"+{new_x}+{new_y}")
+
+    # movimento
+    def on_drag_stop(self, event):
+        self.label.bind("<Button-1>", self.on_drag_start)
+        self.label.bind("<B1-Motion>", self.on_drag_motion)
+        self.colocar_imagem_1()
+
+    def colocar_imagem_1(self):
+        self.image = tk.PhotoImage(file='rajehfeliz.png')
+        self.label.configure(image=self.image)
+
+
+    def colocar_imagem_2(self):
+        self.image = tk.PhotoImage(file='rajehshy.png')
+        self.label.configure(image=self.image)
+
 
 def main():
     Assistente()
