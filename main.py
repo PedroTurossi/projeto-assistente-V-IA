@@ -19,6 +19,7 @@ class Assistente:
         self.label.bind("<Button-1>", self.on_drag_start)
         self.label.bind("<B1-Motion>", self.on_drag_motion)
 
+        self.root.mainloop()
     # movimento
     def on_drag_start(self, event):
         self._start_x = event.x
