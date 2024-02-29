@@ -19,6 +19,7 @@ class Assistente:
         self.label.bind("<Button-1>", self.on_drag_start)
         self.label.bind("<B1-Motion>", self.on_drag_motion)
 
+        self.root.mainloop()
     # movimento
     def on_drag_start(self, event):
         self._start_x = event.x
@@ -30,4 +31,9 @@ class Assistente:
         new_y = self.root.winfo_y() + (event.y - self._start_y)
         self.root.geometry(f"+{new_x}+{new_y}")
 
-Assistente()
+def main():
+    Assistente()
+    print('aaa')
+    
+if __name__ == '__main__':
+    main()
