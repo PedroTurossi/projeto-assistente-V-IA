@@ -1,24 +1,31 @@
 import tkinter as tk
+from PIL import Image, ImageTk
 
 class Assistente:
     def __init__(self):
 
         # cria a janela espiritual e a imagem (que no futuro será uma animação real)
         self.root = tk.Tk()
-        self.root.geometry('+50-50')
+        self.root.configure(background="orange")
+        self.root.geometry('300x300+50-50')
         self.image = tk.PhotoImage(file='rajehfeliz.png')
-        self.label = tk.Label(self.root, image=self.image, bg='white')
-        self.label.pack()
+        self.label = tk.Label(self.root,
+                              image=self.image,
+                              bg='orange')
+        self.label.pack(side="bottom")
 
         # faz a janela ser sem bordas e transparente
         self.root.overrideredirect(True)
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
-        self.root.wm_attributes("-transparentcolor", "white")
+        self.root.wm_attributes("-transparentcolor", "orange")
 
         # adiciona a funcionalidade de arrastar o label
         self.label.bind("<Button-1>", self.on_drag_start)
         self.label.bind("<B1-Motion>", self.on_drag_motion)
+
+        # criar baloeszinhos
+        self.label.bind("<Button-3>", self.on_right_click)
 
         self.root.title('assistente') ### vamos mudar o nome dps
         self.root.mainloop()
@@ -43,6 +50,20 @@ class Assistente:
         self.label.bind("<B1-Motion>", self.on_drag_motion)
         self.colocar_imagem_1()
 
+    # ve se aperto botao direito
+    def on_right_click(self, event):
+        x = self.root.winfo_x()
+        y = self.root.winfo_y()
+        print(x)
+        print(y)
+        balao_img = Image.open('balao_rosa.png')
+        self.image_balao1 = ImageTk.PhotoImage(balao_img.resize((50, 50)))
+
+        self.balloon_label = tk.Label(self.root, image=self.image_balao1, bg="orange")
+        self.balloon_label.place(x=0, y=0)
+
+
+    # imagens / sprites
     def colocar_imagem_1(self):
         self.image = tk.PhotoImage(file='rajehfeliz.png')
         self.label.configure(image=self.image)
@@ -55,7 +76,6 @@ class Assistente:
 
 def main():
     Assistente()
-    print('aaa')
     
 if __name__ == '__main__':
     main()
