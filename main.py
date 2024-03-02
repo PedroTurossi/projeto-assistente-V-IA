@@ -1,5 +1,6 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+import config_read as conf
 
 class Assistente:
     def __init__(self):
@@ -27,7 +28,12 @@ class Assistente:
         # criar baloeszinhos
         self.label.bind("<Button-3>", self.on_right_click)
 
-        self.root.title('assistente') ### vamos mudar o nome dps
+        #isso é uma ferramenta secreta que utilizaremos mais tarde
+        self.configuracoes = conf.Configuracoes()
+
+        self.root.title('BitBot') ### vamos mudar o nome dps
+
+
         self.root.mainloop()
 
 
@@ -35,7 +41,8 @@ class Assistente:
     def on_drag_start(self, event):
         self._start_x = event.x
         self._start_y = event.y
-        self.colocar_imagem_2()
+        if not self.configuracoes.formal_on():
+            self.colocar_imagem_2()
         self.label.bind("<ButtonRelease-1>", self.on_drag_stop)
 
     # movimento
@@ -54,8 +61,6 @@ class Assistente:
     def on_right_click(self, event):
         x = self.root.winfo_x()
         y = self.root.winfo_y()
-        print(x)
-        print(y)
         balao_img = Image.open('balao_rosa.png')
         self.image_balao1 = ImageTk.PhotoImage(balao_img.resize((50, 50)))
 
