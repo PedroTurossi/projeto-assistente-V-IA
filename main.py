@@ -1,9 +1,12 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import config_read as conf
+import icone as icon
 
 class Assistente:
     def __init__(self):
+        global janela_atual
+        janela_atual = self
 
         # cria a janela espiritual e a imagem (que no futuro será uma animação real)
         self.root = tk.Tk()
@@ -32,7 +35,6 @@ class Assistente:
         self.configuracoes = conf.Configuracoes()
 
         self.root.title('BitBot') ### vamos mudar o nome dps
-
 
         self.root.mainloop()
 
@@ -67,6 +69,8 @@ class Assistente:
         self.balloon_label = tk.Label(self.root, image=self.image_balao1, bg="orange")
         self.balloon_label.place(x=0, y=0)
 
+        self.balloon_label.bind('<Button-1>', self.click_fechar)
+
 
     # imagens / sprites
     def colocar_imagem_1(self):
@@ -78,9 +82,17 @@ class Assistente:
         self.image = tk.PhotoImage(file='rajehshy.png')
         self.label.configure(image=self.image)
 
+    def click_fechar(self, event):
+        self.root.destroy()
+        icone = icon.Icone()
+        if icone.continuar:
+            main()
+        
+
 
 def main():
     Assistente()
     
+
 if __name__ == '__main__':
     main()
