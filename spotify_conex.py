@@ -2,6 +2,7 @@ from flask import Flask, request, url_for, session, redirect
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import time
+from configparser import ConfigParser
 
 app = Flask(__name__)
 
@@ -37,7 +38,7 @@ def getTracks():
 
     try:
         return sp.current_user_playing_track()
-        return "Música iniciada com sucesso"
+        # return "Música iniciada com sucesso"
     except spotipy.exceptions.SpotifyException as e:
         return f"Erro ao iniciar a música: {e}"
 
@@ -58,9 +59,11 @@ def busca_musica():
     
 
 def create_spotify_oath():
+    config = ConfigParser()
+    config.read('chave_spotify.ini')
     return SpotifyOAuth(
-        client_id = ' ',
-        client_secret = ' ',
+        client_id = config.get('ID_KEY', 'spotify_id'),
+        client_secret = config.get('SECRET_KEY', 'spotify_key'),
         redirect_uri=url_for('redirectPage', _external=True),
         scope='user-library-read user-read-currently-playing user-modify-playback-state user-read-playback-state app-remote-control'
     )
