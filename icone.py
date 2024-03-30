@@ -8,10 +8,10 @@ Janela.janela_atual = None
 class Icone():
     def __init__(self):
         # Escolha uma imagem pra representar seu ícone
-        image = Image.open("rajehshy.ico")
+        image = Image.open("imgs/BitBot_ico.ico")
 
         # Crie um ícone
-        self.icon = pystray.Icon("nome_da_sua_aplicacao", image, "teste1@")
+        self.icon = pystray.Icon("BitBot", image, "BitBot AV")
         self.icon.run(self.mostrar_na_bandeja)
 
     # Função pra mostrar a aplicação na bandeja do sistema
