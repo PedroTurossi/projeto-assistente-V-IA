@@ -19,5 +19,3 @@ class Configuracoes():
             return True
         else:
             return False
-
-print('teste')
