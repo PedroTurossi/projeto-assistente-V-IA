@@ -13,15 +13,18 @@ class IA():
         model_gemini = genai.GenerativeModel('gemini-pro')
         promp = "--- "+ pergunta +" (no maximo um paragrafo)---"
         resposta = model_gemini.generate_content(promp)
-        return resposta.text
-
-    def ouvir_usuario(self):
-        microfone = sr.Recognizer()
-        with sr.Microphone() as source:
-            microfone.adjust_for_ambient_noise(source)
-            audio = microfone.listen(source)
         try:
-            frase = microfone.recognize_google(audio, language = "PT-BR")
-            return frase
-        except sr.UnknownValueError:
-            return None
+            return resposta.text
+        except:
+            return 'Erro: erro de resposta da API'
+
+    # def ouvir_usuario(self):
+    #     microfone = sr.Recognizer()
+    #     with sr.Microphone() as source:
+    #         microfone.adjust_for_ambient_noise(source)
+    #         audio = microfone.listen(source)
+    #     try:
+    #         frase = microfone.recognize_google(audio, language = "PT-BR")
+    #         return frase
+    #     except sr.UnknownValueError:
+    #         return None

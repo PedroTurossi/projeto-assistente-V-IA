@@ -1,4 +1,6 @@
 import tkinter as tk
+import tkinter.ttk as ttk
+import os
 from PIL import Image, ImageTk
 import config_read as conf
 import icone as icon
@@ -69,23 +71,25 @@ class Assistente:
             self.gerar_menu()
 
     def gerar_menu(self):
-        balao_img = Image.open('balao_rosa.png')
+        balao_img = Image.open('imgs/saida_logo.png')
         self.image_balao1 = ImageTk.PhotoImage(balao_img.resize((50, 50)))
         self.balloon_label = tk.Label(self.root, image=self.image_balao1, bg="black")
-        self.balloon_label.place(x=10, y=30)
+        self.balloon_label.place(x=300, y=120)
         self.balloon_label.bind('<Button-1>', self.click_fechar)
 
-        ia_img = Image.open('rajehfeliz.png')
+        ia_img = Image.open('imgs/IA_API_logo.png')
         self.ia_imagem = ImageTk.PhotoImage(ia_img.resize((50, 50)))
         self.ia_label = tk.Label(self.root, image=self.ia_imagem, bg="black")
-        self.ia_label.place(x=50, y=100)
-        self.ia_label.bind('<Button-1>', self.ia_comando)
+        self.ia_label.place(x=50, y=120)
+        self.ia_label.bind('<Button-1>', self.ia_interface)
 
     def destruir_menu(self):
         self.ia_label.destroy()
         self.balloon_label.destroy()
         if hasattr(self, 'ia_input'):
             self.ia_input.destroy()
+            self.botao_enviar.destroy()
+            self.painel_msg.destroy()
 
     # imagens / (futuramente) sprites
     def colocar_imagem_1(self):
@@ -106,37 +110,60 @@ class Assistente:
         if icone.continuar:
             main()
 
-    def ia_comando(self, event):
+    def ia_interface(self, event):
         self.destruir_menu()
-        self.ia_input = tk.Entry(self.root, width=54)
+        self.ia_input = tk.Entry(self.root, width=54, bg='black', fg='white')
         self.ia_input.place(x=12, y=248)
-
-        self.botao_enviar = tk.Button(self.root, text='enviar', command=self.ia_responder)
+        self.botao_enviar = tk.Button(self.root, text='enviar', command=self.ia_responder, bg='black', fg='white')
         self.botao_enviar.place(x=345, y=245)
-
-        self.painel_msg = tk.Frame(self.root, bg='white', width=350, height=200)
+        self.painel_msg = tk.Frame(self.root, bg='black', width=350, height=200)
         self.painel_msg.place(x=15, y=35)
 
-        self.scrollbar = tk.Scrollbar(self.painel_msg, orient=tk.VERTICAL)
+        style = ttk.Style()
+        style.theme_use('default')
+        style.configure('Vertical.TScrollbar', background='darkgray', troughcolor='black', borderwidth=0)
+        self.scrollbar = ttk.Scrollbar(self.painel_msg, orient=tk.VERTICAL, style='Vertical.TScrollbar')
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.canvas = tk.Canvas(self.painel_msg, yscrollcommand=self.scrollbar.set, bg='white', width=350, height=200)
+        self.canvas = tk.Canvas(self.painel_msg, yscrollcommand=self.scrollbar.set, bg='black', width=350, height=200, highlightthickness=0)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.scrollbar.config(command=self.canvas.yview)
 
-        self.inner_frame = tk.Frame(self.canvas, bg='white')
+        self.inner_frame = tk.Frame(self.canvas, bg='black')
         self.canvas.create_window((0, 0), window=self.inner_frame, anchor=tk.NW)
+        self.carregar_mensagens()
         
+    def carregar_mensagens(self):
+        path = 'mensagens.txt'
+        if not os.path.exists(path):
+            with open(path, 'w') as texto:
+                texto.write('')
+        with open(path, 'r') as msg:
+            mensagem = msg.readlines()
+        for msg in mensagem:
+            self.adicionar_mensagem_painel(msg)
+        
+    def adicionar_mensagem_painel(self, texto):
+        label = tk.Label(self.inner_frame, text=texto, wraplength=350, justify='left', bg='black', fg='white')
+        label.pack(anchor='w')
+        self.canvas.update_idletasks()
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
+    
+    def adicionar_mensagem_txt(self, msg):
+        path = 'mensagens.txt'
+        with open(path, 'a') as texto:
+            texto.write(msg + '\n')
+
     def ia_responder(self):
         ia_api = gem_ia.IA()
         comando = self.ia_input.get()
-        self.label_pergunta = tk.Label(self.painel_msg, text=comando)
-        self.label_pergunta.place(x=0, y=0)
         self.ia_input.delete(0,tk.END)
+        self.adicionar_mensagem_painel(comando)
+        self.adicionar_mensagem_txt(comando)
         resposta = ia_api.responder(comando)
-        self.label_resposta = tk.Label(self.painel_msg, text=resposta)
-        self.label_resposta.place(x=0, y=30)
+        self.adicionar_mensagem_painel(resposta)
+        self.adicionar_mensagem_txt(resposta)
 
 
 def main():
