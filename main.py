@@ -72,10 +72,10 @@ class Assistente:
 
     def gerar_menu(self):
         balao_img = Image.open('imgs/saida_logo.png')
-        self.image_balao1 = ImageTk.PhotoImage(balao_img.resize((50, 50)))
-        self.balloon_label = tk.Label(self.root, image=self.image_balao1, bg="black")
-        self.balloon_label.place(x=300, y=120)
-        self.balloon_label.bind('<Button-1>', self.click_fechar)
+        self.image_close = ImageTk.PhotoImage(balao_img.resize((50, 50)))
+        self.close_label = tk.Label(self.root, image=self.image_close, bg="black")
+        self.close_label.place(x=300, y=120)
+        self.close_label.bind('<Button-1>', self.click_fechar)
 
         ia_img = Image.open('imgs/IA_API_logo.png')
         self.ia_imagem = ImageTk.PhotoImage(ia_img.resize((50, 50)))
@@ -85,11 +85,12 @@ class Assistente:
 
     def destruir_menu(self):
         self.ia_label.destroy()
-        self.balloon_label.destroy()
+        self.close_label.destroy()
         if hasattr(self, 'ia_input'):
             self.ia_input.destroy()
             self.botao_enviar.destroy()
             self.painel_msg.destroy()
+            self.botao_sair.destroy()
 
     # imagens / (futuramente) sprites
     def colocar_imagem_1(self):
@@ -110,14 +111,20 @@ class Assistente:
         if icone.continuar:
             main()
 
+    def fechar_funcao(self):
+        self.destruir_menu()
+        self.gerar_menu()
+
     def ia_interface(self, event):
         self.destruir_menu()
         self.ia_input = tk.Entry(self.root, width=54, bg='black', fg='white')
         self.ia_input.place(x=12, y=248)
         self.botao_enviar = tk.Button(self.root, text='enviar', command=self.ia_responder, bg='black', fg='white')
         self.botao_enviar.place(x=345, y=245)
-        self.painel_msg = tk.Frame(self.root, bg='black', width=350, height=200)
-        self.painel_msg.place(x=15, y=35)
+        self.painel_msg = tk.Frame(self.root, bg='black', width=350, height=190)
+        self.painel_msg.place(x=15, y=55)
+        self.botao_sair = tk.Button(self.root, text='X', bg='black', fg='white', height=1, command=self.fechar_funcao)
+        self.botao_sair.place(x=10, y=30)
 
         style = ttk.Style()
         style.theme_use('default')
@@ -125,7 +132,7 @@ class Assistente:
         self.scrollbar = ttk.Scrollbar(self.painel_msg, orient=tk.VERTICAL, style='Vertical.TScrollbar')
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.canvas = tk.Canvas(self.painel_msg, yscrollcommand=self.scrollbar.set, bg='black', width=350, height=200, highlightthickness=0)
+        self.canvas = tk.Canvas(self.painel_msg, yscrollcommand=self.scrollbar.set, bg='black', width=350, height=190, highlightthickness=0)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.scrollbar.config(command=self.canvas.yview)
