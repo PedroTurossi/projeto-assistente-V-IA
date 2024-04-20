@@ -5,6 +5,8 @@ from PIL import Image, ImageTk
 import config_read as conf
 import icone as icon
 import gemini_ia as gem_ia
+import time
+import threading
 
 class Assistente:
     def __init__(self):
@@ -71,26 +73,42 @@ class Assistente:
             self.gerar_menu()
 
     def gerar_menu(self):
-        balao_img = Image.open('imgs/saida_logo.png')
-        self.image_close = ImageTk.PhotoImage(balao_img.resize((50, 50)))
-        self.close_label = tk.Label(self.root, image=self.image_close, bg="black")
-        self.close_label.place(x=300, y=120)
-        self.close_label.bind('<Button-1>', self.click_fechar)
-
         ia_img = Image.open('imgs/IA_API_logo.png')
         self.ia_imagem = ImageTk.PhotoImage(ia_img.resize((50, 50)))
-        self.ia_label = tk.Label(self.root, image=self.ia_imagem, bg="black")
+        self.ia_label = tk.Label(self.root, image=self.ia_imagem, bg='black')
         self.ia_label.place(x=50, y=120)
         self.ia_label.bind('<Button-1>', self.ia_interface)
+
+        timer_img = Image.open('imgs/Timer_logo.png')
+        self.timer_imagem = ImageTk.PhotoImage(timer_img.resize((50,50)))
+        self.timer_label = tk.Label(self.root, image=self.timer_imagem, bg='black')
+        self.timer_label.place(x=165, y=120)
+        self.timer_label.bind('<Button-1>', self.timer_interface)
+
+        balao_img = Image.open('imgs/saida_logo.png')
+        self.image_close = ImageTk.PhotoImage(balao_img.resize((50, 50)))
+        self.close_label = tk.Label(self.root, image=self.image_close, bg='black')
+        self.close_label.place(x=300, y=120)
+        self.close_label.bind('<Button-1>', self.click_fechar)
 
     def destruir_menu(self):
         self.ia_label.destroy()
         self.close_label.destroy()
+        self.timer_label.destroy()
         if hasattr(self, 'ia_input'):
             self.ia_input.destroy()
             self.botao_enviar.destroy()
             self.painel_msg.destroy()
             self.botao_sair.destroy()
+        elif hasattr(self, 'timer_bar'):
+            self.botao_sair.destroy()
+            self.timer_bar.destroy()
+            self.input_enviar.destroy()
+            self.input_minutos.destroy()
+            self.input_segundos.destroy()
+            self.label_tempo.destroy()
+            if hasattr(self, 'botao_timer_off'):
+                self.botao_timer_off.destroy()
 
     # imagens / (futuramente) sprites
     def colocar_imagem_1(self):
@@ -172,6 +190,52 @@ class Assistente:
         self.adicionar_mensagem_painel(resposta)
         self.adicionar_mensagem_txt(resposta)
 
+    def timer_interface(self, event):
+        self.destruir_menu()
+        self.botao_sair = tk.Button(self.root, text='X', bg='black', fg='white', height=1, command=self.fechar_funcao)
+        self.botao_sair.place(x=10, y=30)
+        self.timer_bar = ttk.Progressbar(self.root, orient='horizontal', length=350)
+        self.timer_bar.place(x=23, y=120)
+        self.input_minutos = tk.Entry(self.root, width=3)
+        self.input_minutos.place(x=140, y=180)
+        self.label_tempo = tk.Label(self.root, text=':', fg='white', bg='black')
+        self.label_tempo.place(x=164, y=178)
+        self.input_segundos = tk.Entry(self.root, width=3)
+        self.input_segundos.place(x=175, y=180)
+        self.input_enviar = tk.Button(self.root, text='Iniciar', command=self.iniciar_timer_thread)
+        self.input_enviar.place(x=210, y=177)
+
+    def iniciar_timer_thread(self):
+        timer = threading.Thread(target=self.iniciar_timer)
+        timer.start()
+
+    def iniciar_timer(self):
+        min = self.input_minutos.get()
+        min = self.verificar_tempo_soum(min)
+        seg = self.input_segundos.get()
+        seg = self.verificar_tempo_soum(seg)
+        self.input_minutos.delete(0, tk.END)
+        self.input_segundos.delete(0, tk.END)
+        tempo_em_segundos = ((min * 60) + seg)
+
+        for s in range(tempo_em_segundos):
+            time.sleep(1)
+            self.timer_bar['value']+=100/tempo_em_segundos
+            self.root.update_idletasks()
+        self.botao_timer_off = tk.Button(self.root, text='Parar', command=self.parar_alarme_timer, width=10)
+        self.botao_timer_off.place(x=150, y=130)
+
+    def parar_alarme_timer(self):
+        self.botao_timer_off.destroy()
+        self.timer_bar['value'] = 0
+
+    def verificar_tempo_soum(self, string):
+        if string == '':
+            return 0
+        for char in string:
+            if not char.isdigit():
+                return 0
+        return int(string)
 
 def main():
     Assistente()
