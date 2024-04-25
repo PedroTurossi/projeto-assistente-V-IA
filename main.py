@@ -63,49 +63,53 @@ class Assistente:
             self.colocar_imagem_1()
 
     def on_right_click(self, event):
-        if self.imagem_tela:
-            self.imagem_tela = False
-            self.colocar_imagem_1()
-            self.destruir_menu()
-        else:
+        if not self.imagem_tela:
             self.imagem_tela = True
             self.colocar_imagem_tela()
             self.gerar_menu()
 
     def gerar_menu(self):
+        self.menu_painel = tk.Frame(self.root, bg='black', width=365, height=190)
+        self.menu_painel.place(x=15, y=55)
+
+        self.botao_sair = tk.Button(self.menu_painel, text='X', bg='black', fg='white', height=1, command=self.call_destruir_menu)
+        self.botao_sair.place(x=0, y=0)
+
         ia_img = Image.open('imgs/IA_API_logo.png')
         self.ia_imagem = ImageTk.PhotoImage(ia_img.resize((50, 50)))
-        self.ia_label = tk.Label(self.root, image=self.ia_imagem, bg='black')
-        self.ia_label.place(x=50, y=120)
+        self.ia_label = tk.Label(self.menu_painel, image=self.ia_imagem, bg='black')
+        self.ia_label.place(x=35, y=65)
         self.ia_label.bind('<Button-1>', self.ia_interface)
 
         timer_img = Image.open('imgs/Timer_logo.png')
         self.timer_imagem = ImageTk.PhotoImage(timer_img.resize((50,50)))
-        self.timer_label = tk.Label(self.root, image=self.timer_imagem, bg='black')
-        self.timer_label.place(x=165, y=120)
+        self.timer_label = tk.Label(self.menu_painel, image=self.timer_imagem, bg='black')
+        self.timer_label.place(x=150, y=65)
         self.timer_label.bind('<Button-1>', self.timer_interface)
 
         saida_img = Image.open('imgs/saida_logo.png')
         self.image_close = ImageTk.PhotoImage(saida_img.resize((50, 50)))
-        self.close_label = tk.Label(self.root, image=self.image_close, bg='black')
-        self.close_label.place(x=300, y=120)
+        self.close_label = tk.Label(self.menu_painel, image=self.image_close, bg='black')
+        self.close_label.place(x=285, y=65)
         self.close_label.bind('<Button-1>', self.click_fechar)
+    
+    def call_destruir_menu(self):
+        self.destruir_menu(self.menu_painel)
+        self.imagem_tela = False
+        self.colocar_imagem_1()
 
-    def destruir_menu(self):
-        self.ia_label.destroy()
-        self.close_label.destroy()
-        self.timer_label.destroy()
+    def call_destruir_timer(self):
+        self.destruir_menu(self.painel_timer)
+        self.gerar_menu()
 
-        if hasattr(self, 'ia_input'):
-            self.ia_input.destroy()
-            self.botao_enviar.destroy()
-            self.painel_msg.destroy()
-            self.botao_sair.destroy()
-        elif hasattr(self, 'timer_bar') or hasattr(self, 'painel_timer'):
-            self.botao_sair.destroy()
-            self.painel_timer.destroy()
-            if hasattr(self, 'botao_timer_off'):
-                self.botao_timer_off.destroy()
+    def call_destruir_ia(self):
+        self.destruir_menu(self.painel_ia)
+        self.gerar_menu()
+
+    def destruir_menu(self, janela):
+        for elemento in janela.winfo_children():
+            elemento.destroy()
+        janela.destroy()
 
     # imagens / (futuramente) sprites
     def colocar_imagem_1(self):
@@ -126,23 +130,23 @@ class Assistente:
         if icone.continuar:
             main()
 
-    def fechar_funcao(self):
-        self.destruir_menu()
-        self.gerar_menu()
-
     def ia_interface(self, event):
-        self.destruir_menu()
-        self.ia_input = tk.Entry(self.root, width=54, bg='black', fg='white')
-        self.ia_input.place(x=12, y=248)
+        self.destruir_menu(self.menu_painel)
 
-        self.botao_enviar = tk.Button(self.root, text='enviar', command=self.ia_responder, bg='black', fg='white')
-        self.botao_enviar.place(x=345, y=245)
+        self.painel_ia = tk.Frame(self.root, bg='black', width=380, height=240)
+        self.painel_ia.place(x=10, y=31)
+        
+        self.ia_input = tk.Entry(self.painel_ia, width=54, bg='black', fg='white')
+        self.ia_input.place(x=3, y=216)
 
-        self.painel_msg = tk.Frame(self.root, bg='black', width=350, height=190)
-        self.painel_msg.place(x=15, y=55)
+        self.botao_enviar = tk.Button(self.painel_ia, text='enviar', command=self.ia_responder, bg='black', fg='white')
+        self.botao_enviar.place(x=333, y=213)
 
-        self.botao_sair = tk.Button(self.root, text='X', bg='black', fg='white', height=1, command=self.fechar_funcao)
-        self.botao_sair.place(x=10, y=30)
+        self.painel_msg = tk.Frame(self.painel_ia, bg='black', width=350, height=200)
+        self.painel_msg.place(x=5, y=17)
+
+        self.botao_sair = tk.Button(self.painel_ia, text='X', bg='black', fg='white', height=1, command=self.call_destruir_ia)
+        self.botao_sair.place(x=0, y=0)
 
         style = ttk.Style()
         style.theme_use('default')
@@ -195,12 +199,13 @@ class Assistente:
         self.adicionar_mensagem_txt(resposta)
 
     def timer_interface(self, event):
-        self.destruir_menu()
-        self.botao_sair = tk.Button(self.root, text='X', bg='black', fg='white', height=1, command=self.fechar_funcao)
-        self.botao_sair.place(x=10, y=30)
+        self.destruir_menu(self.menu_painel)
 
         self.painel_timer = tk.Frame(self.root, bg='black', width=365, height=190)
         self.painel_timer.place(x=15, y=55)
+
+        self.botao_sair = tk.Button(self.painel_timer, text='X', bg='black', fg='white', height=1, command=self.call_destruir_timer)
+        self.botao_sair.place(x=0, y=0)
 
         style_bar = ttk.Style()
         style_bar.configure('Horizontal.TProgressbar', background="green")
@@ -237,8 +242,6 @@ class Assistente:
 
         for s in range(tempo_em_segundos):
             time.sleep(1)
-            if not hasattr(self, 'timer_bar') or not self.root.winfo_exists():
-                return
             self.timer_bar['value']+=100/tempo_em_segundos
             self.root.update_idletasks()
 
