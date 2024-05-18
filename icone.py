@@ -8,7 +8,7 @@ Janela.janela_atual = None
 class Icone():
     def __init__(self):
         # Escolha uma imagem pra representar seu ícone
-        image = Image.open("imgs/BitBot_ico.ico")
+        image = Image.open("midia/BitBot_ico.ico")
 
         # Crie um ícone
         self.icon = pystray.Icon("BitBot", image, "BitBot AV")

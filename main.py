@@ -7,6 +7,7 @@ import icone as icon
 import gemini_ia as gem_ia
 import time
 import threading
+import pygame
 
 class Assistente:
     def __init__(self):
@@ -17,7 +18,7 @@ class Assistente:
         self.root = tk.Tk()
         self.root.configure(background="gray")
         self.root.geometry('400x300+05-50')
-        self.image = tk.PhotoImage(file='imgs/BitBot1.png')
+        self.image = tk.PhotoImage(file='midia/BitBot1.png')
         self.label = tk.Label(self.root,
                               image=self.image,
                               bg='gray')
@@ -28,7 +29,6 @@ class Assistente:
         self.root.lift()
         self.root.wm_attributes("-topmost", True)
         self.root.wm_attributes("-transparentcolor", "gray")
-
         self.label.bind("<Button-1>", self.on_drag_start)
         self.label.bind("<B1-Motion>", self.on_drag_motion)
 
@@ -42,8 +42,6 @@ class Assistente:
 
         self.root.mainloop()
 
-
-    # movimento
     def on_drag_start(self, event):
         self._start_x = event.x
         self._start_y = event.y
@@ -75,19 +73,19 @@ class Assistente:
         self.botao_sair = tk.Button(self.menu_painel, text='X', bg='black', fg='white', height=1, command=self.call_destruir_menu)
         self.botao_sair.place(x=0, y=0)
 
-        ia_img = Image.open('imgs/IA_API_logo.png')
+        ia_img = Image.open('midia/IA_API_logo.png')
         self.ia_imagem = ImageTk.PhotoImage(ia_img.resize((50, 50)))
         self.ia_label = tk.Label(self.menu_painel, image=self.ia_imagem, bg='black')
         self.ia_label.place(x=35, y=65)
         self.ia_label.bind('<Button-1>', self.ia_interface)
 
-        timer_img = Image.open('imgs/Timer_logo.png')
+        timer_img = Image.open('midia/Timer_logo.png')
         self.timer_imagem = ImageTk.PhotoImage(timer_img.resize((50,50)))
         self.timer_label = tk.Label(self.menu_painel, image=self.timer_imagem, bg='black')
         self.timer_label.place(x=150, y=65)
         self.timer_label.bind('<Button-1>', self.timer_interface)
 
-        saida_img = Image.open('imgs/saida_logo.png')
+        saida_img = Image.open('midia/saida_logo.png')
         self.image_close = ImageTk.PhotoImage(saida_img.resize((50, 50)))
         self.close_label = tk.Label(self.menu_painel, image=self.image_close, bg='black')
         self.close_label.place(x=285, y=65)
@@ -99,6 +97,8 @@ class Assistente:
         self.colocar_imagem_1()
 
     def call_destruir_timer(self):
+        if pygame.mixer.music.get_busy() == True:
+            pygame.mixer.music.stop()
         self.destruir_menu(self.painel_timer)
         self.gerar_menu()
 
@@ -113,15 +113,15 @@ class Assistente:
 
     # imagens / (futuramente) sprites
     def colocar_imagem_1(self):
-        self.image = tk.PhotoImage(file='imgs/BitBot1.png')
+        self.image = tk.PhotoImage(file='midia/BitBot1.png')
         self.label.configure(image=self.image)
 
     def colocar_imagem_2(self):
-        self.image = tk.PhotoImage(file='imgs/BitBot1.png')
+        self.image = tk.PhotoImage(file='midia/BitBot1.png')
         self.label.configure(image=self.image)
 
     def colocar_imagem_tela(self):
-        self.image = tk.PhotoImage(file='imgs/BitBot_rosto.png')
+        self.image = tk.PhotoImage(file='midia/BitBot_rosto.png')
         self.label.configure(image=self.image)
 
     def click_fechar(self, event):
@@ -171,7 +171,7 @@ class Assistente:
         with open(path, 'r') as msg:
             mensagem = msg.readlines()
         for msg in mensagem:
-            self.adicionar_mensagem_painel(msg)
+            self.adicionar_mensagem_painel(('    ' + msg))
         
     def adicionar_mensagem_painel(self, texto):
         label = tk.Label(self.inner_frame, text=texto, wraplength=350, justify='left', bg='black', fg='white')
@@ -226,6 +226,8 @@ class Assistente:
 
         self.input_enviar = tk.Button(self.painel_timer, text='Iniciar', command=self.iniciar_timer_thread)
         self.input_enviar.place(relx=0.5, rely=0.8, anchor="center")
+        
+        pygame.mixer.init()
 
     def iniciar_timer_thread(self):
         timer = threading.Thread(target=self.iniciar_timer)
@@ -242,13 +244,20 @@ class Assistente:
 
         for s in range(tempo_em_segundos):
             time.sleep(1)
-            self.timer_bar['value']+=100/tempo_em_segundos
-            self.root.update_idletasks()
-
-        self.botao_timer_off = tk.Button(self.painel_timer, text='Parar', command=self.parar_alarme_timer, width=10)
-        self.botao_timer_off.place(x=145, y=80)
+            if hasattr(self, 'timer_bar'):
+                self.timer_bar['value']+=100/tempo_em_segundos
+                self.root.update_idletasks()
+        self.tocar_alarme()
+    
+    def tocar_alarme(self):
+        if hasattr(self, 'painel_timer'):
+            pygame.mixer.music.load('midia/somAlert.wav')
+            pygame.mixer.music.play(-1)  # Loop infinito
+            self.botao_timer_off = tk.Button(self.painel_timer, text='Parar', command=self.parar_alarme_timer, width=10)
+            self.botao_timer_off.place(x=145, y=80)
 
     def parar_alarme_timer(self):
+        pygame.mixer.music.stop()
         self.botao_timer_off.destroy()
         self.timer_bar['value'] = 0
 
@@ -260,9 +269,9 @@ class Assistente:
                 return 0
         return int(string)
 
+
 def main():
     Assistente()
-    
 
 if __name__ == '__main__':
     main()
