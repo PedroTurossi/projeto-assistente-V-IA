@@ -2,12 +2,16 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import os
 from PIL import Image, ImageTk
-import config_read as conf
-import icone as icon
-import gemini_ia as gem_ia
 import time
 import threading
 import pygame
+from dateutil.parser import isoparse
+
+import config_read as conf
+import icone as icon
+import gemini_ia as gem_ia
+import agenda as agenda_api
+
 
 class Assistente:
     def __init__(self):
@@ -18,7 +22,7 @@ class Assistente:
         self.root = tk.Tk()
         self.root.configure(background="gray")
         self.root.geometry('400x300+05-50')
-        self.image = tk.PhotoImage(file='midia/BitBot1.png')
+        self.image = tk.PhotoImage(file='midia/BitBot2.png')
         self.label = tk.Label(self.root,
                               image=self.image,
                               bg='gray')
@@ -76,14 +80,20 @@ class Assistente:
         ia_img = Image.open('midia/IA_API_logo.png')
         self.ia_imagem = ImageTk.PhotoImage(ia_img.resize((50, 50)))
         self.ia_label = tk.Label(self.menu_painel, image=self.ia_imagem, bg='black')
-        self.ia_label.place(x=35, y=65)
+        self.ia_label.place(x=20, y=65)
         self.ia_label.bind('<Button-1>', self.ia_interface)
 
         timer_img = Image.open('midia/Timer_logo.png')
         self.timer_imagem = ImageTk.PhotoImage(timer_img.resize((50,50)))
         self.timer_label = tk.Label(self.menu_painel, image=self.timer_imagem, bg='black')
-        self.timer_label.place(x=150, y=65)
+        self.timer_label.place(x=110, y=65)
         self.timer_label.bind('<Button-1>', self.timer_interface)
+
+        windows_img = Image.open('midia/rajehfeliz.png')
+        self.win_img = ImageTk.PhotoImage(windows_img.resize((50,50)))
+        self.win_label = tk.Label(self.menu_painel, image=self.win_img, bg='black')
+        self.win_label.place(x=190, y=65)
+        self.win_label.bind('<Button-1>', self.calendario_interface)
 
         saida_img = Image.open('midia/saida_logo.png')
         self.image_close = ImageTk.PhotoImage(saida_img.resize((50, 50)))
@@ -104,6 +114,10 @@ class Assistente:
 
     def call_destruir_ia(self):
         self.destruir_menu(self.painel_ia)
+        self.gerar_menu()
+
+    def call_destruir_calendario(self):
+        self.destruir_menu(self.painel_calendario)
         self.gerar_menu()
 
     def destruir_menu(self, janela):
@@ -269,6 +283,69 @@ class Assistente:
                 return 0
         return int(string)
 
+    def calendario_interface(self, event):
+        self.destruir_menu(self.menu_painel)
+
+        self.painel_calendario = tk.Frame(self.root, bg='black', width=380, height=230)
+        self.painel_calendario.place(x=10, y=40)
+
+        self.botao_sair = tk.Button(self.painel_calendario, text='X', bg='black', fg='white', height=1, command=self.call_destruir_calendario)
+        self.botao_sair.place(x=0, y=0)
+
+        self.painel_eventos = tk.Frame(self.painel_calendario, bg='black', width=370, height=190)
+        self.painel_eventos.place(x=5, y=25)
+
+        style = ttk.Style()
+        style.theme_use('default')
+        style.configure('Horizontal.TScrollbar', background='darkgray', troughcolor='black', borderwidth=0)
+        self.scrollbar = ttk.Scrollbar(self.painel_eventos, orient=tk.HORIZONTAL, style='Horizontal.TScrollbar')
+
+        self.canvas = tk.Canvas(self.painel_eventos, xscrollcommand=self.scrollbar.set, bg='black', width=370, height=190, highlightthickness=0)
+        self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.inner_frame = tk.Frame(self.canvas, bg='black', width=370, height=190)
+        self.canvas.create_window((0, 0), window=self.inner_frame, anchor=tk.NW)
+
+        self.scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+        self.scrollbar.config(command=self.canvas.xview)
+
+        agenda_thread = threading.Thread(target=self.carregar_calendario)
+        agenda_thread.start()
+
+
+    def carregar_calendario(self):
+        eventos = agenda_api.return_calendario()
+        if eventos == []:
+            label_erro = tk.Label(self.inner_frame, text='Você não tem nenhum evento no calendário', justify='left', bg='black', fg='white')
+            label_erro.pack()
+        else:
+            for event in eventos:
+                start = event["start"].get("dateTime", event["start"].get("date"))
+                if "dateTime" in event["start"]:
+                    start_datetime = isoparse(start)
+                    day = start_datetime.strftime("%d-%m-%Y")
+                    time = start_datetime.strftime("%H:%M")
+                else:
+                    day = start
+                    time = ""
+                
+                event_summary = event["summary"]
+
+                painel_evento = tk.Frame(self.inner_frame, bg='black', highlightthickness=1, width=200, height=200)
+                painel_evento.pack(side='left', padx=5, pady=15)
+
+                label_data = tk.Label(painel_evento, text=day, justify='left', bg='black', fg='white', font=("Arial", 8))
+                label_data.pack(padx=5, pady=5)
+                
+                label_evento = tk.Label(painel_evento, text=event_summary, bg='black', fg='white', font=("Arial", 16))
+                label_evento.pack(padx=5, pady=5)
+                
+                label_horario = tk.Label(painel_evento, text=time, bg='black', fg='white', font=("Arial", 12))
+                label_horario.pack(padx=5, pady=5)
+
+                self.canvas.update_idletasks()
+                self.canvas.config(scrollregion=self.canvas.bbox("all"))
+    
+    
 
 def main():
     Assistente()

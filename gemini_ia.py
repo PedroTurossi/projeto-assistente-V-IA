@@ -5,7 +5,7 @@ from configparser import ConfigParser
 class IA():
     def __init__(self):
         config = ConfigParser()
-        config.read('chave_google.ini')
+        config.read('chave_gemini.ini')
         self.api_key = config['API_KEY']['google_api_key']
         genai.configure(api_key=self.api_key)
 
