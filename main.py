@@ -89,7 +89,7 @@ class Assistente:
         self.timer_label.place(x=110, y=65)
         self.timer_label.bind('<Button-1>', self.timer_interface)
 
-        windows_img = Image.open('midia/rajehfeliz.png')
+        windows_img = Image.open('midia/calendario.png')
         self.win_img = ImageTk.PhotoImage(windows_img.resize((50,50)))
         self.win_label = tk.Label(self.menu_painel, image=self.win_img, bg='black')
         self.win_label.place(x=190, y=65)
@@ -127,11 +127,11 @@ class Assistente:
 
     # imagens / (futuramente) sprites
     def colocar_imagem_1(self):
-        self.image = tk.PhotoImage(file='midia/BitBot1.png')
+        self.image = tk.PhotoImage(file='midia/BitBot2.png')
         self.label.configure(image=self.image)
 
     def colocar_imagem_2(self):
-        self.image = tk.PhotoImage(file='midia/BitBot1.png')
+        self.image = tk.PhotoImage(file='midia/BitBot2.png')
         self.label.configure(image=self.image)
 
     def colocar_imagem_tela(self):
@@ -224,7 +224,7 @@ class Assistente:
         style_bar = ttk.Style()
         style_bar.configure('Horizontal.TProgressbar', background="green")
         self.timer_bar = ttk.Progressbar(self.painel_timer, orient='horizontal', length=350, style='Horizontal.TProgressbar')
-        self.timer_bar.place(relx=0.5, rely=0.3, anchor="center")
+        self.timer_bar.place(relx=0.5, rely=0.4, anchor="center")
 
         input_frame = tk.Frame(self.painel_timer)
         input_frame.place(relx=0.5, rely=0.6, anchor="center")
@@ -249,31 +249,47 @@ class Assistente:
 
     def iniciar_timer(self):
         min = self.input_minutos.get()
-        min = self.verificar_tempo_soum(min)
         seg = self.input_segundos.get()
+        min = self.verificar_tempo_soum(min)
         seg = self.verificar_tempo_soum(seg)
+
         self.input_minutos.delete(0, tk.END)
         self.input_segundos.delete(0, tk.END)
-        tempo_em_segundos = ((min * 60) + seg)
+        self.tempo_total = ((min * 60) + seg)
+        self.tempo_restante = self.tempo_total
 
-        for s in range(tempo_em_segundos):
-            time.sleep(1)
-            if hasattr(self, 'timer_bar'):
-                self.timer_bar['value']+=100/tempo_em_segundos
-                self.root.update_idletasks()
-        self.tocar_alarme()
-    
+        self.label_tempo_restante = tk.Label(self.painel_timer, text=f'{min:02d}:{seg:02d}',fg="#ffffff",bg="black",font=('arial', 30, 'bold'))
+        self.label_tempo_restante.place(relx=0.5, rely=0.2, anchor="center")
+
+        self.atualizar_timer()
+        
+    def atualizar_timer(self):
+        min = self.tempo_restante // 60
+        seg = self.tempo_restante % 60
+        self.timer_bar['value'] += 100 / (self.tempo_total + 1)
+        self.root.update_idletasks()
+        if self.tempo_restante > 0:
+            self.tempo_restante -= 1
+            self.label_tempo_restante.configure(text=f'{min:02d}:{seg:02d}')
+            self.root.after(1000, self.atualizar_timer)
+            return self.label_tempo_restante
+        else: 
+            self.label_tempo_restante.configure(text=f'{min:02d}:{seg:02d}')
+            self.tocar_alarme()
+            return self.label_tempo_restante
+
     def tocar_alarme(self):
         if hasattr(self, 'painel_timer'):
             pygame.mixer.music.load('midia/somAlert.wav')
             pygame.mixer.music.play(-1)  # Loop infinito
             self.botao_timer_off = tk.Button(self.painel_timer, text='Parar', command=self.parar_alarme_timer, width=10)
             self.botao_timer_off.place(x=145, y=80)
-
+            
     def parar_alarme_timer(self):
         pygame.mixer.music.stop()
         self.botao_timer_off.destroy()
         self.timer_bar['value'] = 0
+        self.label_tempo_restante.destroy()
 
     def verificar_tempo_soum(self, string):
         if string == '':
@@ -311,7 +327,9 @@ class Assistente:
         agenda_thread = threading.Thread(target=self.carregar_calendario)
         agenda_thread.start()
 
-
+        botao_inserir_compromisso = tk.Button(self.painel_calendario, text='Novo', bg='black', fg='white', height=1, command=agenda_api.tela_adicionar_evento)
+        botao_inserir_compromisso.place(x=170, y=183)
+        
     def carregar_calendario(self):
         eventos = agenda_api.return_calendario()
         if eventos == []:
@@ -320,6 +338,7 @@ class Assistente:
         else:
             for event in eventos:
                 start = event["start"].get("dateTime", event["start"].get("date"))
+                event_id = event['id']  # Pegando o ID do evento para excluir
                 if "dateTime" in event["start"]:
                     start_datetime = isoparse(start)
                     day = start_datetime.strftime("%d-%m-%Y")
@@ -327,7 +346,7 @@ class Assistente:
                 else:
                     day = start
                     time = ""
-                
+
                 event_summary = event["summary"]
 
                 painel_evento = tk.Frame(self.inner_frame, bg='black', highlightthickness=1, width=200, height=200)
@@ -335,12 +354,15 @@ class Assistente:
 
                 label_data = tk.Label(painel_evento, text=day, justify='left', bg='black', fg='white', font=("Arial", 8))
                 label_data.pack(padx=5, pady=5)
-                
+
                 label_evento = tk.Label(painel_evento, text=event_summary, bg='black', fg='white', font=("Arial", 16))
                 label_evento.pack(padx=5, pady=5)
-                
+
                 label_horario = tk.Label(painel_evento, text=time, bg='black', fg='white', font=("Arial", 12))
                 label_horario.pack(padx=5, pady=5)
+
+                botao_excluir = tk.Button(painel_evento, text="Excluir", bg="red", fg="white", command=lambda e_id=event_id: agenda_api.deletar_evento(e_id, painel_evento))
+                botao_excluir.pack(padx=5, pady=5)
 
                 self.canvas.update_idletasks()
                 self.canvas.config(scrollregion=self.canvas.bbox("all"))
@@ -349,6 +371,6 @@ class Assistente:
 
 def main():
     Assistente()
-
+ 
 if __name__ == '__main__':
     main()
